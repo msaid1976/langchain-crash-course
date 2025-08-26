@@ -15,25 +15,29 @@ messages = [
 
 # ---- LangChain OpenAI Chat Model Example ----
 
-# Create a ChatOpenAI model
-model = ChatOpenAI(model="gpt-4o")
+# # Create a ChatOpenAI model
+# # model = ChatOpenAI(model="gpt-4o")
+
+from langchain_ollama import ChatOllama
+model = ChatOllama(model="llama3.2") 
 
 # Invoke the model with messages
 result = model.invoke(messages)
-print(f"Answer from OpenAI: {result.content}")
+print(f"Answer from llama3.2: {result.content}")
 
 
 # ---- Anthropic Chat Model Example ----
 
-# Create a Anthropic model
-# Anthropic models: https://docs.anthropic.com/en/docs/models-overview
-model = ChatAnthropic(model="claude-3-opus-20240229")
+# # Create a Anthropic model
+# # Anthropic models: https://docs.anthropic.com/en/docs/models-overview
+# model = ChatAnthropic(model="claude-3-opus-20240229")
 
-result = model.invoke(messages)
-print(f"Answer from Anthropic: {result.content}")
+# result = model.invoke(messages)
+# print(f"Answer from Anthropic: {result.content}")
 
 
-# ---- Google Chat Model Example ----
+# Alternative: deep 
+# # ---- Google Chat Model Example ----
 
 # https://console.cloud.google.com/gen-app-builder/engines
 # https://ai.google.dev/gemini-api/docs/models/gemini
@@ -41,3 +45,19 @@ model = ChatGoogleGenerativeAI(model="gemini-1.5-flash")
 
 result = model.invoke(messages)
 print(f"Answer from Google: {result.content}")
+
+
+messages = [
+    SystemMessage(content="Answer concisely, do not show your thinking."),
+    HumanMessage(content="What is 81 divided by 9?"),
+]
+# Use DeepSeek chat model with Ollama (local)
+from langchain_ollama import ChatOllama
+model = ChatOllama(model="deepseek-r1:1.5b")
+
+result = model.invoke(messages)
+print(f"Answer from DeepSeek (Ollama): {result.content}")
+
+
+
+
