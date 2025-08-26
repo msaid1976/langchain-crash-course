@@ -6,7 +6,11 @@ from langchain.schema import AIMessage, HumanMessage, SystemMessage
 load_dotenv()
 
 # Create a ChatOpenAI model
-model = ChatOpenAI(model="gpt-4o")
+# model = ChatOpenAI(model="gpt-4o")
+
+
+from langchain_ollama import ChatOllama
+model = ChatOllama(model="llama3.2") 
 
 
 chat_history = []  # Use a list to store messages
