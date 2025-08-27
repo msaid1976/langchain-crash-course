@@ -6,7 +6,9 @@ from langchain_openai import ChatOpenAI
 load_dotenv()
 
 # Create a ChatOpenAI model
-model = ChatOpenAI(model="gpt-4o")
+# model = ChatOpenAI(model="gpt-4o")
+from langchain_ollama import ChatOllama
+model = ChatOllama(model="llama3.2") 
 
 # PART 1: Create a ChatPromptTemplate using a template string
 print("-----Prompt from Template-----")
@@ -27,6 +29,7 @@ prompt = prompt_multiple.invoke({"adjective": "funny", "animal": "panda"})
 
 result = model.invoke(prompt)
 print(result.content)
+
 
 # PART 3: Prompt with System and Human Messages (Using Tuples)
 print("\n----- Prompt with System and Human Messages (Tuple) -----\n")

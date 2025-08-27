@@ -4,7 +4,7 @@
 from langchain.prompts import ChatPromptTemplate
 from langchain_core.messages import HumanMessage
 
-# # PART 1: Create a ChatPromptTemplate using a template string
+# PART 1: Create a ChatPromptTemplate using a template string
 # template = "Tell me a joke about {topic}."
 # prompt_template = ChatPromptTemplate.from_template(template)
 
@@ -22,7 +22,7 @@ from langchain_core.messages import HumanMessage
 # print(prompt)
 
 
-# PART 3: Prompt with System and Human Messages (Using Tuples)
+# # PART 3: Prompt with System and Human Messages (Using Tuples)
 # messages = [
 #     ("system", "You are a comedian who tells jokes about {topic}."),
 #     ("human", "Tell me {joke_count} jokes."),
