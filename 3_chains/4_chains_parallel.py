@@ -73,7 +73,7 @@ chain = (
 )
 
 # Run the chain
-result = chain.invoke({"product_name": "MacBook Pro"})
+result = chain.invoke({"product_name": "Huawie Watch 5 pro"})
 
 # Output
 print(result)
