@@ -7,7 +7,9 @@ from langchain_openai import ChatOpenAI
 load_dotenv()
 
 # Create a ChatOpenAI model
-model = ChatOpenAI(model="gpt-4o")
+# model = ChatOpenAI(model="gpt-4o")
+from langchain_ollama import ChatOllama
+model = ChatOllama(model="llama3.2") 
 
 # Define prompt templates (no need for separate Runnable chains)
 prompt_template = ChatPromptTemplate.from_messages(
@@ -22,7 +24,7 @@ chain = prompt_template | model | StrOutputParser()
 # chain = prompt_template | model
 
 # Run the chain
-result = chain.invoke({"topic": "lawyers", "joke_count": 3})
+result = chain.invoke({"topic": "Programmers", "joke_count": 3})
 
 # Output
 print(result)
