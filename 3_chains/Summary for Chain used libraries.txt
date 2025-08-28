@@ -1,0 +1,38 @@
+
+## RunnableLambda
+format_prompt = RunnableLambda(lambda x: prompt_template.format_prompt(**x))
+invoke_model = RunnableLambda(lambda x: model.invoke(x.to_messages()))
+parse_output = RunnableLambda(lambda x: x.content)
+
+
+## RunnableSequence
+chain = RunnableSequence(first=format_prompt, middle=[invoke_model], last=parse_output)
+
+
+
+## RunnableParallel
+chain = (
+    prompt_template
+    | model
+    | StrOutputParser()
+    | RunnableParallel(branches={"pros": pros_branch_chain, "cons": cons_branch_chain})
+    | RunnableLambda(lambda x: combine_pros_cons(x["branches"]["pros"], x["branches"]["cons"]))
+)
+
+
+## RunnableBranch
+branches = RunnableBranch(
+    (
+        lambda x: "positive" in x,
+        positive_feedback_template | model | StrOutputParser()  # Positive feedback chain
+    ),
+    (
+        lambda x: "negative" in x,
+        negative_feedback_template | model | StrOutputParser()  # Negative feedback chain
+    ),
+    (
+        lambda x: "neutral" in x,
+        neutral_feedback_template | model | StrOutputParser()  # Neutral feedback chain
+    ),
+    escalate_feedback_template | model | StrOutputParser()
+)
