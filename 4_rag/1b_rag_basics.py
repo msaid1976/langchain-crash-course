@@ -1,6 +1,7 @@
 import os
 
 from langchain_community.vectorstores import Chroma
+from langchain_ollama import OllamaEmbeddings
 from langchain_openai import OpenAIEmbeddings
 
 # Define the persistent directory
@@ -8,7 +9,11 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 persistent_directory = os.path.join(current_dir, "db", "chroma_db")
 
 # Define the embedding model
-embeddings = OpenAIEmbeddings(model="text-embedding-3-small")
+# embeddings = OpenAIEmbeddings(model="text-embedding-3-small")
+embeddings = OllamaEmbeddings(
+    model="llama3.2"
+)
+print("\n--- Finished creating embeddings ---")
 
 # Load the existing vector store with the embedding function
 db = Chroma(persist_directory=persistent_directory,
