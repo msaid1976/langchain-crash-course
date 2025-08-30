@@ -1,9 +1,14 @@
 import os
 
+# Disable ChromaDB telemetry for cleaner output
+os.environ["ANONYMIZED_TELEMETRY"] = "False"
+
 from langchain.text_splitter import CharacterTextSplitter
 from langchain_community.document_loaders import TextLoader
 from langchain_community.vectorstores import Chroma
-from langchain_openai import OpenAIEmbeddings
+# Use fast open-source embeddings instead of OpenAI
+from langchain_community.embeddings import HuggingFaceEmbeddings
+# from langchain_openai import OpenAIEmbeddings
 
 # Define the directory containing the text files and the persistent directory
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -31,27 +36,43 @@ if not os.path.exists(persistent_directory):
     documents = []
     for book_file in book_files:
         file_path = os.path.join(books_dir, book_file)
-        loader = TextLoader(file_path)
-        book_docs = loader.load()
-        for doc in book_docs:
-            # Add metadata to each document indicating its source
-            doc.metadata = {"source": book_file}
-            documents.append(doc)
+        try:
+            # Use UTF-8 encoding to handle special characters
+            loader = TextLoader(file_path, encoding='utf-8')
+            book_docs = loader.load()
+            for doc in book_docs:
+                # Add metadata to each document indicating its source
+                doc.metadata = {"source": book_file}
+                documents.append(doc)
+            print(f"✅ Loaded: {book_file}")
+        except UnicodeDecodeError:
+            print(f"⚠️  Skipping {book_file} due to encoding issues")
+            continue
 
-    # Split the documents into chunks
-    text_splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=0)
+    # Split the documents into chunks (optimized for faster processing)
+    text_splitter = CharacterTextSplitter(chunk_size=1500, chunk_overlap=200)  # Larger chunks = fewer embeddings needed
     docs = text_splitter.split_documents(documents)
 
     # Display information about the split documents
     print("\n--- Document Chunks Information ---")
     print(f"Number of document chunks: {len(docs)}")
+    print(f"Books processed: {len(book_files)}")
+    
+    # Estimate processing time
+    estimated_time = len(docs) * 1  # Rough estimate: 1 second per chunk with fast embeddings
+    print(f"⏱️  Estimated processing time: ~{estimated_time//60} minutes {estimated_time%60} seconds")
 
-    # Create embeddings
+    # Create embeddings using FAST open-source model (same as 1a_rag_basics.py)
     print("\n--- Creating embeddings ---")
-    embeddings = OpenAIEmbeddings(
-        model="text-embedding-3-small"
-    )  # Update to a valid embedding model if needed
-    print("\n--- Finished creating embeddings ---")
+    print("🚀 Using fast open-source embedding model...")
+    
+    # Use HuggingFace Sentence Transformers - extremely fast and open source
+    embeddings = HuggingFaceEmbeddings(
+        model_name="all-MiniLM-L6-v2",  # Small, fast, high-quality model
+        model_kwargs={'device': 'cpu'},  # Use CPU (change to 'cuda' if you have GPU)
+        encode_kwargs={'normalize_embeddings': True}  # Normalize for better similarity search
+    )
+    print("✅ Embedding model initialized successfully")
 
     # Create the vector store and persist it
     print("\n--- Creating and persisting vector store ---")

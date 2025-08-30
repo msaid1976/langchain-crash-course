@@ -7,11 +7,11 @@ os.environ["ANONYMIZED_TELEMETRY"] = "False"
 
 from langchain.text_splitter import CharacterTextSplitter
 from langchain_community.document_loaders import TextLoader
-from langchain_community.vectorstores import Chroma
-# from langchain_openai import OpenAIEmbeddings
-# Fast open-source embeddings - much faster than Ollama
-from langchain_huggingface import HuggingFaceEmbeddings
+# Use the modern Chroma import that supports pydantic v2
 from langchain_chroma import Chroma
+# from langchain_openai import OpenAIEmbeddings
+# Use stable community embeddings instead of the problematic langchain-huggingface
+from langchain_community.embeddings import HuggingFaceEmbeddings
 
 # Define the directory containing the text file and the persistent directory
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -33,7 +33,7 @@ if not os.path.exists(persistent_directory):
     documents = loader.load()
 
     # Split the document into chunks (optimized for faster processing)
-    text_splitter = CharacterTextSplitter(chunk_size=1500, chunk_overlap=200)  # Much larger chunks = way fewer embeddings needed
+    text_splitter = CharacterTextSplitter(chunk_size=1500, chunk_overlap=100)  # Much larger chunks = way fewer embeddings needed
     docs = text_splitter.split_documents(documents)
 
     # Display information about the split documents
