@@ -1,18 +1,26 @@
 import os
 
-from dotenv import load_dotenv
-from langchain_community.vectorstores import Chroma
-from langchain_openai import OpenAIEmbeddings
+# Disable ChromaDB telemetry for cleaner output
+os.environ["ANONYMIZED_TELEMETRY"] = "False"
 
-load_dotenv()
+from langchain_community.vectorstores import Chroma
+# Use fast open-source embeddings instead of OpenAI
+from langchain_community.embeddings import HuggingFaceEmbeddings
+# from langchain_openai import OpenAIEmbeddings
 
 # Define the persistent directory
 current_dir = os.path.dirname(os.path.abspath(__file__))
 db_dir = os.path.join(current_dir, "db")
 persistent_directory = os.path.join(db_dir, "chroma_db_with_metadata")
 
-# Define the embedding model
-embeddings = OpenAIEmbeddings(model="text-embedding-3-small")
+# Define the embedding model (using fast open-source model)
+print("🚀 Initializing fast HuggingFace embedding model...")
+embeddings = HuggingFaceEmbeddings(
+    model_name="all-MiniLM-L6-v2",  # Small, fast, high-quality model
+    model_kwargs={'device': 'cpu'},  # Use CPU (change to 'cuda' if you have GPU)
+    encode_kwargs={'normalize_embeddings': True}  # Normalize for better similarity search
+)
+print("✅ Embedding model loaded successfully")
 
 # Load the existing vector store with the embedding function
 db = Chroma(persist_directory=persistent_directory,

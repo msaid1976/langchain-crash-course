@@ -1,10 +1,14 @@
 import os
 
-from langchain.embeddings import HuggingFaceEmbeddings
+# Disable ChromaDB telemetry for cleaner output
+os.environ["ANONYMIZED_TELEMETRY"] = "False"
+
+# Use community embeddings for consistency
+from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain.text_splitter import CharacterTextSplitter
 from langchain_community.document_loaders import TextLoader
 from langchain_community.vectorstores import Chroma
-from langchain_openai import OpenAIEmbeddings
+# from langchain_openai import OpenAIEmbeddings
 
 # Define the directory containing the text file and the persistent directory
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -18,11 +22,11 @@ if not os.path.exists(file_path):
     )
 
 # Read the text content from the file
-loader = TextLoader(file_path)
+loader = TextLoader(file_path, encoding='utf-8')
 documents = loader.load()
 
 # Split the document into chunks
-text_splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=0)
+text_splitter = CharacterTextSplitter(chunk_size=1500, chunk_overlap=200)  # Optimized chunk size
 docs = text_splitter.split_documents(documents)
 
 # Display information about the split documents
@@ -44,25 +48,28 @@ def create_vector_store(docs, embeddings, store_name):
             f"Vector store {store_name} already exists. No need to initialize.")
 
 
-# 1. OpenAI Embeddings
-# Uses OpenAI's embedding models.
-# Useful for general-purpose embeddings with high accuracy.
-# Note: The cost of using OpenAI embeddings will depend on your OpenAI API usage and pricing plan.
-# Pricing: https://openai.com/api/pricing/
-print("\n--- Using OpenAI Embeddings ---")
-openai_embeddings = OpenAIEmbeddings(model="text-embedding-ada-002")
-create_vector_store(docs, openai_embeddings, "chroma_db_openai")
-
-# 2. Hugging Face Transformers
-# Uses models from the Hugging Face library.
-# Ideal for leveraging a wide variety of models for different tasks.
-# Note: Running Hugging Face models locally on your machine incurs no direct cost other than using your computational resources.
-# Note: Find other models at https://huggingface.co/models?other=embeddings
-print("\n--- Using Hugging Face Transformers ---")
-huggingface_embeddings = HuggingFaceEmbeddings(
-    model_name="sentence-transformers/all-mpnet-base-v2"
+# 1. HuggingFace Embeddings (Fast and Free)
+# Uses open-source models from HuggingFace.
+# Ideal for fast, local embeddings without API costs.
+# Note: Running HuggingFace models locally incurs no cost other than computational resources.
+print("\n--- Using HuggingFace Embeddings (all-MiniLM-L6-v2) ---")
+fast_embeddings = HuggingFaceEmbeddings(
+    model_name="all-MiniLM-L6-v2",  # Fast, lightweight model
+    model_kwargs={'device': 'cpu'},
+    encode_kwargs={'normalize_embeddings': True}
 )
-create_vector_store(docs, huggingface_embeddings, "chroma_db_huggingface")
+create_vector_store(docs, fast_embeddings, "chroma_db_fast")
+
+# 2. HuggingFace Embeddings (Higher Quality)
+# Uses a larger, more accurate model for better embeddings.
+# Note: Find other models at https://huggingface.co/models?other=embeddings
+print("\n--- Using HuggingFace Embeddings (all-mpnet-base-v2) ---")
+quality_embeddings = HuggingFaceEmbeddings(
+    model_name="sentence-transformers/all-mpnet-base-v2",  # Higher quality model
+    model_kwargs={'device': 'cpu'},
+    encode_kwargs={'normalize_embeddings': True}
+)
+create_vector_store(docs, quality_embeddings, "chroma_db_quality")
 
 print("Embedding demonstrations for OpenAI and Hugging Face completed.")
 
@@ -92,10 +99,10 @@ def query_vector_store(store_name, query, embedding_function):
 
 
 # Define the user's question
-query = "Who is Odysseus' wife?"
+query = "Who is Odysseus wife"  # Simplified query for better matching
 
 # Query each vector store
-query_vector_store("chroma_db_openai", query, openai_embeddings)
-query_vector_store("chroma_db_huggingface", query, huggingface_embeddings)
+query_vector_store("chroma_db_fast", query, fast_embeddings)
+query_vector_store("chroma_db_quality", query, quality_embeddings)
 
 print("Querying demonstrations completed.")

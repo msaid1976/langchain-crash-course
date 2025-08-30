@@ -1,5 +1,8 @@
 import os
 
+# Disable ChromaDB telemetry for cleaner output
+os.environ["ANONYMIZED_TELEMETRY"] = "False"
+
 from langchain.text_splitter import (
     CharacterTextSplitter,
     RecursiveCharacterTextSplitter,
@@ -9,7 +12,9 @@ from langchain.text_splitter import (
 )
 from langchain_community.document_loaders import TextLoader
 from langchain_community.vectorstores import Chroma
-from langchain_openai import OpenAIEmbeddings
+# Use fast open-source embeddings instead of OpenAI
+from langchain_community.embeddings import HuggingFaceEmbeddings
+# from langchain_openai import OpenAIEmbeddings
 
 # Define the directory containing the text file
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -23,13 +28,17 @@ if not os.path.exists(file_path):
     )
 
 # Read the text content from the file
-loader = TextLoader(file_path)
+loader = TextLoader(file_path, encoding='utf-8')
 documents = loader.load()
 
-# Define the embedding model
-embeddings = OpenAIEmbeddings(
-    model="text-embedding-3-small"
-)  # Update to a valid embedding model if needed
+# Define the embedding model (using fast open-source model)
+print("🚀 Initializing fast HuggingFace embedding model...")
+embeddings = HuggingFaceEmbeddings(
+    model_name="all-MiniLM-L6-v2",  # Small, fast, high-quality model
+    model_kwargs={'device': 'cpu'},  # Use CPU (change to 'cuda' if you have GPU)
+    encode_kwargs={'normalize_embeddings': True}  # Normalize for better similarity search
+)
+print("✅ Embedding model loaded successfully")
 
 
 # Function to create and persist vector store
@@ -106,7 +115,7 @@ def query_vector_store(store_name, query):
         )
         retriever = db.as_retriever(
             search_type="similarity_score_threshold",
-            search_kwargs={"k": 1, "score_threshold": 0.1},
+            search_kwargs={"k": 1, "score_threshold": 0.3},  # More realistic threshold
         )
         relevant_docs = retriever.invoke(query)
         # Display the relevant results with metadata

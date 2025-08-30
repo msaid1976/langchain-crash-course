@@ -6,7 +6,11 @@ from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain_community.vectorstores import Chroma
 from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
-from langchain_openai import ChatOpenAI, OpenAIEmbeddings
+from langchain_community.llms import Ollama
+from langchain_huggingface import HuggingFaceEmbeddings
+
+# Disable ChromaDB telemetry
+os.environ["ANONYMIZED_TELEMETRY"] = "False"
 
 # Load environment variables from .env
 load_dotenv()
@@ -16,7 +20,11 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 persistent_directory = os.path.join(current_dir, "db", "chroma_db_with_metadata")
 
 # Define the embedding model
-embeddings = OpenAIEmbeddings(model="text-embedding-3-small")
+embeddings = HuggingFaceEmbeddings(
+    model_name="all-MiniLM-L6-v2",
+    model_kwargs={'device': 'cpu'},
+    encode_kwargs={'normalize_embeddings': True}
+)
 
 # Load the existing vector store with the embedding function
 db = Chroma(persist_directory=persistent_directory, embedding_function=embeddings)
@@ -29,8 +37,8 @@ retriever = db.as_retriever(
     search_kwargs={"k": 3},
 )
 
-# Create a ChatOpenAI model
-llm = ChatOpenAI(model="gpt-4o")
+# Create an Ollama model
+llm = Ollama(model="llama3.2")
 
 # Contextualize question prompt
 # This system prompt helps the AI understand that it should reformulate the question
