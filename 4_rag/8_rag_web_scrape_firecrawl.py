@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 from langchain.text_splitter import CharacterTextSplitter
 from langchain_community.document_loaders import FireCrawlLoader
 from langchain_community.vectorstores import Chroma
-from langchain_huggingface import HuggingFaceEmbeddings
+from langchain_community.embeddings import HuggingFaceEmbeddings
 
 # Disable ChromaDB telemetry
 os.environ["ANONYMIZED_TELEMETRY"] = "False"

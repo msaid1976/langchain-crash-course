@@ -69,4 +69,8 @@ print("\n--- Generated Response ---")
 # print("Full result:")
 # print(result)
 print("Content only:")
-print(result.content)
+# Check if result is a string or has content attribute
+if isinstance(result, str):
+    print(result)
+else:
+    print(result.content)

@@ -58,7 +58,7 @@ fast_embeddings = HuggingFaceEmbeddings(
     model_kwargs={'device': 'cpu'},
     encode_kwargs={'normalize_embeddings': True}
 )
-create_vector_store(docs, fast_embeddings, "chroma_db_fast")
+create_vector_store(docs, fast_embeddings, "chroma_db_fast_all-MiniLM")
 
 # 2. HuggingFace Embeddings (Higher Quality)
 # Uses a larger, more accurate model for better embeddings.
@@ -69,7 +69,7 @@ quality_embeddings = HuggingFaceEmbeddings(
     model_kwargs={'device': 'cpu'},
     encode_kwargs={'normalize_embeddings': True}
 )
-create_vector_store(docs, quality_embeddings, "chroma_db_quality")
+create_vector_store(docs, quality_embeddings, "chroma_db_huggingface")
 
 print("Embedding demonstrations for OpenAI and Hugging Face completed.")
 

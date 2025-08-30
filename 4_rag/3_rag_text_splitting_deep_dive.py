@@ -113,27 +113,56 @@ def query_vector_store(store_name, query):
         db = Chroma(
             persist_directory=persistent_directory, embedding_function=embeddings
         )
-        retriever = db.as_retriever(
-            search_type="similarity_score_threshold",
-            search_kwargs={"k": 1, "score_threshold": 0.3},  # More realistic threshold
-        )
-        relevant_docs = retriever.invoke(query)
-        # Display the relevant results with metadata
-        print(f"\n--- Relevant Documents for {store_name} ---")
-        for i, doc in enumerate(relevant_docs, 1):
-            print(f"Document {i}:\n{doc.page_content}\n")
-            if doc.metadata:
-                print(f"Source: {doc.metadata.get('source', 'Unknown')}\n")
+        
+        # First try with similarity search with scores to see what we get
+        results_with_scores = db.similarity_search_with_score(query, k=3)
+        
+        if results_with_scores:
+            print(f"Top 3 results with similarity scores:")
+            for i, (doc, score) in enumerate(results_with_scores, 1):
+                print(f"\nResult {i} (similarity score: {score:.3f}):")
+                print(f"Content preview: {doc.page_content[:300]}...")
+                if doc.metadata:
+                    print(f"Source: {doc.metadata.get('source', 'Unknown')}")
+            
+            # Use the best result if score is reasonable (< 1.0 for normalized embeddings)
+            best_doc, best_score = results_with_scores[0]
+            if best_score < 0.8:  # More lenient threshold
+                print(f"\n--- Best Answer (score: {best_score:.3f}) ---")
+                print(f"Content: {best_doc.page_content}")
+                if best_doc.metadata:
+                    print(f"Source: {best_doc.metadata.get('source', 'Unknown')}")
+            else:
+                print(f"\n--- No sufficiently relevant results found ---")
+                print(f"Best score was {best_score:.3f}, which indicates low relevance.")
+        else:
+            print(f"No results found for query: {query}")
     else:
         print(f"Vector store {store_name} does not exist.")
 
 
-# Define the user's question
-query = "How did Juliet die?"
+# Define the user's questions (try multiple variations)
+queries = [
+    "How did Juliet die?",
+    "Juliet death poison dagger",
+    "Juliet tomb death",
+    "What happened to Juliet in the end?"
+]
 
-# Query each vector store
-query_vector_store("chroma_db_char", query)
-query_vector_store("chroma_db_sent", query)
-query_vector_store("chroma_db_token", query)
-query_vector_store("chroma_db_rec_char", query)
-query_vector_store("chroma_db_custom", query)
+print("=" * 60)
+print("TESTING MULTIPLE QUERY VARIATIONS")
+print("=" * 60)
+
+for query in queries:
+    print(f"\n🔍 Testing query: '{query}'")
+    print("-" * 50)
+    
+    # Test with the character-based splitting (usually works best)
+    query_vector_store("chroma_db_char", query)
+    
+    # Only show other stores for the first query to avoid too much output
+    if query == queries[0]:
+        query_vector_store("chroma_db_sent", query)
+        query_vector_store("chroma_db_token", query)
+        query_vector_store("chroma_db_rec_char", query)
+        query_vector_store("chroma_db_custom", query)

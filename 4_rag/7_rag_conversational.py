@@ -7,7 +7,7 @@ from langchain_community.vectorstores import Chroma
 from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_community.llms import Ollama
-from langchain_huggingface import HuggingFaceEmbeddings
+from langchain_community.embeddings import HuggingFaceEmbeddings
 
 # Disable ChromaDB telemetry
 os.environ["ANONYMIZED_TELEMETRY"] = "False"
